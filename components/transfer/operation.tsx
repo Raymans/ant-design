@@ -5,15 +5,18 @@ export interface TransferOperationProps {
   className?: string;
   leftArrowText?: string;
   rightArrowText?: string;
-  moveToLeft?: React.FormEventHandler<HTMLButtonElement>;
-  moveToRight?: React.FormEventHandler<HTMLButtonElement>;
+  moveToLeft?: React.MouseEventHandler<HTMLButtonElement>;
+  moveToRight?: React.MouseEventHandler<HTMLButtonElement>;
   leftActive?: boolean;
   rightActive?: boolean;
+  style?: React.CSSProperties;
+  disabled?: boolean;
 }
 
 export default class Operation extends React.Component<TransferOperationProps, any> {
   render() {
     const {
+      disabled,
       moveToLeft,
       moveToRight,
       leftArrowText = '',
@@ -21,26 +24,27 @@ export default class Operation extends React.Component<TransferOperationProps, a
       leftActive,
       rightActive,
       className,
+      style,
     } = this.props;
     return (
-      <div className={className}>
+      <div className={className} style={style}>
         <Button
           type="primary"
           size="small"
-          disabled={!leftActive}
-          onClick={moveToLeft}
-          icon="left"
-        >
-          {leftArrowText}
-        </Button>
-        <Button
-          type="primary"
-          size="small"
-          disabled={!rightActive}
+          disabled={disabled || !rightActive}
           onClick={moveToRight}
           icon="right"
         >
           {rightArrowText}
+        </Button>
+        <Button
+          type="primary"
+          size="small"
+          disabled={disabled || !leftActive}
+          onClick={moveToLeft}
+          icon="left"
+        >
+          {leftArrowText}
         </Button>
       </div>
     );

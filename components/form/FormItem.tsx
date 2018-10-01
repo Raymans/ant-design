@@ -1,12 +1,14 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
+import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
+import intersperse from 'intersperse';
 import Animate from 'rc-animate';
 import Row from '../grid/row';
 import Col, { ColProps } from '../grid/col';
 import warning from '../_util/warning';
 import { FIELD_META_PROP, FIELD_DATA_PROP } from './constants';
+import Icon from '../icon';
 
 export interface FormItemProps {
   prefixCls?: string;
@@ -65,15 +67,20 @@ export default class FormItem extends React.Component<FormItemProps, any> {
     );
   }
 
-  getHelpMsg() {
-    const props = this.props;
-    const onlyControl = this.getOnlyControl();
-    if (props.help === undefined && onlyControl) {
+  getHelpMessage() {
+    const { help } = this.props;
+    if (help === undefined && this.getOnlyControl()) {
       const errors = this.getField().errors;
-      return errors ? errors.map((e: any) => e.message).join(', ') : '';
+      if (errors) {
+        return intersperse(errors.map((e: any, index: number) => (
+          React.isValidElement(e.message)
+            ? React.cloneElement(e.message, { key: index })
+            : e.message
+        )), ' ');
+      }
+      return '';
     }
-
-    return props.help;
+    return help;
   }
 
   getControls(children: React.ReactNode, recursively: boolean) {
@@ -92,7 +99,7 @@ export default class FormItem extends React.Component<FormItemProps, any> {
       if (!child.props) {
         continue;
       }
-      if (FIELD_META_PROP in child.props) { // And means FIELD_DATA_PROP in chidl.props, too.
+      if (FIELD_META_PROP in child.props) { // And means FIELD_DATA_PROP in child.props, too.
         controls.push(child);
       } else if (child.props.children) {
         controls = controls.concat(this.getControls(child.props.children, recursively));
@@ -132,7 +139,7 @@ export default class FormItem extends React.Component<FormItemProps, any> {
 
   renderHelp() {
     const prefixCls = this.props.prefixCls;
-    const help = this.getHelpMsg();
+    const help = this.getHelpMessage();
     const children = help ? (
       <div className={`${prefixCls}-explain`} key="help">
         {help}
@@ -197,9 +204,36 @@ export default class FormItem extends React.Component<FormItemProps, any> {
         'is-validating': validateStatus === 'validating',
       });
     }
+
+    let iconType = '';
+    switch (validateStatus) {
+      case 'success':
+        iconType = 'check-circle';
+        break;
+      case 'warning':
+        iconType = 'exclamation-circle';
+        break;
+      case 'error':
+        iconType = 'close-circle';
+        break;
+      case 'validating':
+        iconType = 'loading';
+        break;
+      default:
+        iconType = '';
+        break;
+    }
+
+    const icon = (props.hasFeedback && iconType) ?
+      <span className={`${this.props.prefixCls}-item-children-icon`}>
+        <Icon type={iconType} theme={iconType === 'loading' ? 'outlined' : 'filled'} />
+      </span> : null;
+
     return (
       <div className={classes}>
-        <span className={`${this.props.prefixCls}-item-children`}>{c1}</span>
+        <span className={`${this.props.prefixCls}-item-children`}>
+          {c1}{icon}
+        </span>
         {c2}{c3}
       </div>
     );

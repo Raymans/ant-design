@@ -3,6 +3,13 @@ import { mount } from 'enzyme';
 import Menu from '..';
 import Icon from '../../icon';
 
+jest.mock('mutationobserver-shim', () => {
+  global.MutationObserver = function MutationObserver() {
+    this.observe = () => {};
+    this.disconnect = () => {};
+  };
+});
+
 const { SubMenu } = Menu;
 
 describe('Menu', () => {
@@ -12,6 +19,23 @@ describe('Menu', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('If has select nested submenu item ,the menu items on the grandfather level should be highlight', () => {
+    const wrapper = mount(
+      <Menu defaultSelectedKeys={['1-3-2']} mode="vertical">
+        <SubMenu key="1" title="submenu1">
+          <Menu.Item key="1-1">Option 1</Menu.Item>
+          <Menu.Item key="1-2">Option 2</Menu.Item>
+          <SubMenu key="1-3" title="submenu1-3">
+            <Menu.Item key="1-3-1">Option 3</Menu.Item>
+            <Menu.Item key="1-3-2">Option 4</Menu.Item>
+          </SubMenu>
+        </SubMenu>
+        <Menu.Item key="2">menu2</Menu.Item>
+      </Menu>
+    );
+    expect(wrapper.find('.ant-menu-submenu-selected').length).toBe(1);
   });
 
   it('should accept defaultOpenKeys in mode horizontal', () => {
@@ -68,6 +92,7 @@ describe('Menu', () => {
     wrapper.update();
     expect(wrapper.find('.ant-menu-sub').hostNodes().at(0).hasClass('ant-menu-hidden')).toBe(true);
     wrapper.setProps({ openKeys: ['1'] });
+    wrapper.update();
     expect(wrapper.find('.ant-menu-sub').hostNodes().at(0).hasClass('ant-menu-hidden')).not.toBe(true);
   });
 
@@ -86,6 +111,7 @@ describe('Menu', () => {
     wrapper.update();
     expect(wrapper.find('.ant-menu-sub').hostNodes().at(0).hasClass('ant-menu-hidden')).toBe(true);
     wrapper.setProps({ openKeys: ['1'] });
+    wrapper.update();
     expect(wrapper.find('.ant-menu-sub').hostNodes().at(0).hasClass('ant-menu-hidden')).not.toBe(true);
   });
 
@@ -104,6 +130,7 @@ describe('Menu', () => {
     wrapper.update();
     expect(wrapper.find('.ant-menu-sub').hostNodes().at(0).hasClass('ant-menu-hidden')).toBe(true);
     wrapper.setProps({ openKeys: ['1'] });
+    wrapper.update();
     expect(wrapper.find('.ant-menu-sub').hostNodes().at(0).hasClass('ant-menu-hidden')).not.toBe(true);
   });
 

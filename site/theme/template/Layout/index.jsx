@@ -12,6 +12,12 @@ import enLocale from '../../en-US';
 import cnLocale from '../../zh-CN';
 import * as utils from '../utils';
 
+if (typeof window !== 'undefined' && navigator.serviceWorker) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach(registration => registration.unregister());
+  });
+}
+
 if (typeof window !== 'undefined') {
   /* eslint-disable global-require */
   require('../../static/style');
@@ -32,14 +38,14 @@ export default class Layout extends React.Component {
   static contextTypes = {
     router: PropTypes.object.isRequired,
   }
+
   static childContextTypes = {
     isMobile: PropTypes.bool,
   };
 
   getChildContext() {
-    return {
-      isMobile: this.state.isMobile,
-    };
+    const { isMobile: mobile } = this.state;
+    return { isMobile: mobile };
   }
 
   constructor(props) {
@@ -55,7 +61,8 @@ export default class Layout extends React.Component {
   }
 
   componentDidMount() {
-    this.context.router.listen((loc) => {
+    const { router } = this.context;
+    router.listen((loc) => {
       if (typeof window.ga !== 'undefined') {
         window.ga('send', 'pageview', loc.pathname + loc.search);
       }
